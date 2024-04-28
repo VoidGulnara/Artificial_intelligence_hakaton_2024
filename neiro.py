@@ -18,7 +18,7 @@ data['Answer'] = data['Answer'].apply(clean_text)
 
 
 
-train_data = data[data['Correctness'] == 1]  # Keep only rows with Correctness = 1
+train_data = data[data['Correctness'] == 1]  
 test_data = train_test_split(train_data, test_size=0.2, random_state=42)[1]
 
 
@@ -70,9 +70,9 @@ def analyze_answer(user_answer, reference_answer, comments):
                     similarity = util.cos_sim(user_embedding, inc_embedding)[0][0]
                     if similarity > 0.67:
                         feedback = "Неверно, ответ похож на ранее помеченный как некорректный."
-                        return feedback  # Exit early if a match is found
+                        return feedback  
 
-        feedback = "Не совсем точно"  # Default feedback if no match with incorrect answers
+        feedback = "Не совсем точно"  
     return feedback
 
 
