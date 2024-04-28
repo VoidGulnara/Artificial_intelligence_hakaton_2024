@@ -48,6 +48,7 @@ def analyze_answer(user_answer, reference_answer, comments):
                         feedback = "Неверно, ответ похож на ранее помеченный как некорректный."
                         return feedback 
         feedback = "Не совсем точно"  
+    return feedback  
 def get_unique_names(data):
     unique_names = data['Lesson'].unique()
     unique_names.sort()
