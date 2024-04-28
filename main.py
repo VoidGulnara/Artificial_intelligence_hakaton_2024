@@ -1,10 +1,10 @@
 import telebot
 import os
-from telebot import types
+#from telebot import types
 from datetime import datetime
 import pandas as pd
 from keyboa.keyboard import Keyboa
-
+#import neiro
 import curators
 
 token ='6721196106:AAHa9mYliRmwwaNmF1zG9kmwOL7wluA-5q0'
@@ -15,7 +15,7 @@ kyrs={}
 #Функция, которая работает с файловой системой и выдает список курсов и их уроки
 def Courses():
     #Введите полный путь к папке с вашим материалом
-    root_dir = r'materials2'
+    root_dir = r'материалы'
     list_Kurs = list()
     for root, dirs, files in os.walk(root_dir):
         list1 = list()
@@ -29,7 +29,7 @@ def Courses():
     return transposed_matrix[0]
 
 def All():
-    root_dir = r'materials2'
+    root_dir = r'материалы'
     list_Kurs = list()
     for root, dirs, files in os.walk(root_dir):
         list1 = list()
@@ -59,10 +59,10 @@ all_course = ["Тест по всему курсу"]
 kb_yes_or_not = Keyboa(items=yes_or_not, copy_text_to_callback=True).keyboard
 kb_test_mode = Keyboa(items=test_mode, copy_text_to_callback=True).keyboard
 kb_courses = Keyboa(items=Courses(), copy_text_to_callback=True).keyboard
-keyboard1 = Keyboa(items=Lessons('Вводные уроки'), copy_text_to_callback=True).keyboard
+keyboard1 = Keyboa(items=Lessons('introduction'), copy_text_to_callback=True).keyboard
 kb_all_course = Keyboa(items=all_course, copy_text_to_callback=True).keyboard
 kb_lessons = Keyboa.combine(keyboards=(keyboard1, kb_all_course))
-keyboard2 = Keyboa(items=Lessons('Основной материал'), copy_text_to_callback=True).keyboard
+keyboard2 = Keyboa(items=Lessons('process'), copy_text_to_callback=True).keyboard
 kb_lections = Keyboa.combine(keyboards=(keyboard2, kb_all_course))
 
 @bot.callback_query_handler(func=lambda call:True)
