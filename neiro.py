@@ -37,7 +37,7 @@ def analyze_answer(user_answer, reference_answer, comments):
     if len(similar_chunks) > 0.8 * len(reference_chunks):
         feedback = "Верно!"
     else:
-        incorrect_matches = train_data[(train_data['Correctness'] == 0) & (train_data['Question'] == question)]
+        incorrect_matches = train_data[(train_data['Correctness'] == 0)]
         for incorrect_answer in incorrect_matches['Answer']:
             incorrect_chunks = split_text(incorrect_answer)
             incorrect_embeddings = embedder.encode(incorrect_chunks)
@@ -48,13 +48,9 @@ def analyze_answer(user_answer, reference_answer, comments):
                         feedback = "Неверно, ответ похож на ранее помеченный как некорректный."
                         return feedback 
         feedback = "Не совсем точно"  
-    return feedback
-def get_questions(data, lesson_or_course, num_questions=10):
+def get_questions(data, lesson_or_course):
     filtered_data = data[data['Lesson'] == lesson_or_course]
-    if len(filtered_data) < num_questions:
-        print(f"Warning: Only {len(filtered_data)} questions available for the selected criteria.")
-    sample_size = min(num_questions, len(filtered_data))
-    return filtered_data.sample(n=sample_size, replace=True)
+    return filtered_data 
 def get_user_choice(data):
     unique_names = data['Lesson'].unique()
     unique_names.sort()  
@@ -89,6 +85,18 @@ while True:
             questions = test_data[test_data['Lesson'] == lesson_or_course]
         else:
             questions = get_questions(test_data, lesson_or_course)
+            if questions is not None:
+                for i, row in test_data.iterrows():
+                    question = row['Question']
+                    reference_answer = row['Answer']
+                    comments = row['Comment']
+                    user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
+                    feedback = analyze_answer(user_answer, reference_answer, comments)
+                    print(feedback)
+                    if feedback == "Не совсем точно":
+                        print(comments)
+            else:
+                print("Нет вопросов")
     elif choice == '2':
         unique_names = get_unique_names(test_data)
         questions = pd.concat([get_questions(test_data, name, num_questions=1) for name in unique_names])
@@ -98,13 +106,4 @@ while True:
     else:
         print("Неверный выбор. Попробуйте еще раз.")
         continue
-for i, row in test_data.iterrows():
-    question = row['Question']
-    reference_answer = row['Answer']
-    comments = row['Comment']
-    user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
-    feedback = analyze_answer(user_answer, reference_answer, comments)
-    print(feedback)
-    if feedback == "Не совсем точно":
-        print(comments)
 
