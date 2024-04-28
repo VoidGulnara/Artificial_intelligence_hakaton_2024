@@ -48,11 +48,15 @@ def analyze_answer(user_answer, reference_answer, comments):
                         feedback = "Неверно, ответ похож на ранее помеченный как некорректный."
                         return feedback 
         feedback = "Не совсем точно"  
+def get_unique_names(data):
+    unique_names = data['Lesson'].unique()
+    unique_names.sort()
+    return unique_names
 def get_questions(data, lesson_or_course):
     filtered_data = data[data['Lesson'] == lesson_or_course]
     return filtered_data 
 def get_user_choice(data):
-    unique_names = data['Lesson'].unique()
+    unique_names = get_unique_names(data)
     unique_names.sort()  
     print("Доступные темы:")
     for i, name in enumerate(unique_names):
@@ -68,19 +72,49 @@ def get_user_choice(data):
         except ValueError:
             print("Неверный ввод. Пожалуйста, введите номер.")
 while True:
-    lesson_or_course = get_user_choice(test_data)
-    questions = get_questions(test_data, lesson_or_course)
-    if questions is not None:
-        for i, row in test_data.iterrows():
-            question = row['Question']
-            reference_answer = row['Answer']
-            comments = row['Comment']
-            user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
-            feedback = analyze_answer(user_answer, reference_answer, comments)
-            print(feedback)
-            if feedback == "Не совсем точно":
-                print(comments)
+    print("\nВыберите опцию:")
+    print("1. Проверить знания по конкретной теме")
+    print("2. Выход")
+    choice = input("> ")
+    if choice == '1':
+        lesson_or_course = get_user_choice(test_data)
+        while True:
+            all_questions_choice = input("Проверить знания по всей теме? (введите 'да' или 'нет'): ")
+            if all_questions_choice.lower() in ['да', 'нет']:
+                break
             else:
-                print("Нет вопросов")
+                print("Неверный ввод. Пожалуйста, введите 'да' или 'нет'.")
+        if all_questions_choice.lower() == 'да':
+            questions = test_data[test_data['Lesson'] == lesson_or_course]
+            if questions is not None:
+                for i, row in test_data.iterrows():
+                    question = row['Question']
+                    reference_answer = row['Answer']
+                    comments = row['Comment']
+                    user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
+                    feedback = analyze_answer(user_answer, reference_answer, comments)
+                    print(feedback)
+                    if feedback == "Не совсем точно":
+                        print(comments)
+            else:
+                print("неи")
+        else:
+            questions = get_questions(test_data, lesson_or_course)
+            if questions is not None:
+                for i, row in test_data.iterrows():
+                    question = row['Question']
+                    reference_answer = row['Answer']
+                    comments = row['Comment']
+                    user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
+                    feedback = analyze_answer(user_answer, reference_answer, comments)
+                    print(feedback)
+                    if feedback == "Не совсем точно":
+                        print(comments)
+            else:
+                print("неи")
+    elif choice == '2':
+        break
+    else:
+        print("Неверный выбор. Попробуйте еще раз.")
         continue
 
