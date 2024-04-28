@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sentence_transformers import SentenceTransformer, util
 
-
+# 1. Data Loading and Preprocessing
 
 data = pd.read_csv("train_data.csv")
 
@@ -16,16 +16,17 @@ def clean_text(text):
 data['Question'] = data['Question'].apply(clean_text)
 data['Answer'] = data['Answer'].apply(clean_text)
 
+# 2. Train-Test Split with Correctness Filtering
 
+train_data = data[data['Correctness'] == 1]  # Keep only rows with Correctness = 1
+test_data = train_test_split(train_data, test_size=0.2, random_state=42)[1]
 
-train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
-
-
+# 3. Sentence Embeddings with Sentence Transformers
 
 model_name = 'all-MiniLM-L6-v2' 
 embedder = SentenceTransformer(model_name)
 
-
+# 4. Text Splitting
 
 def split_text(text, chunk_size=200, chunk_overlap=50):
     chunks = []
@@ -33,7 +34,7 @@ def split_text(text, chunk_size=200, chunk_overlap=50):
         chunks.append(text[i:i + chunk_size])
     return chunks
 
-
+# 5. Answer Analysis
 
 def analyze_answer(user_answer, reference_answer, comments):
     user_chunks = split_text(user_answer)
@@ -46,7 +47,12 @@ def analyze_answer(user_answer, reference_answer, comments):
     for ref_chunk, ref_embedding in zip(reference_chunks, reference_embeddings):
         for user_chunk, user_embedding in zip(user_chunks, user_embeddings):
             similarity = util.cos_sim(user_embedding, ref_embedding)[0][0]
-            if similarity > 0.67:
+
+            # Check if the reference chunk belongs to a correct answer
+            corresponding_row = train_data[(train_data['Question'] == question) & (train_data['Answer'] == ref_chunk)]
+            is_correct_reference = not corresponding_row.empty and corresponding_row['Correctness'].values[0] == 1
+
+            if similarity > 0.67 and is_correct_reference:
                 similar_chunks.append(user_chunk)
                 break
 
@@ -54,9 +60,22 @@ def analyze_answer(user_answer, reference_answer, comments):
     if len(similar_chunks) > 0.8 * len(reference_chunks):
         feedback = "Верно!"
     else:
-        feedback = "Не совсем точно."
+        # Check if the user answer is similar to any incorrect answer
+        incorrect_matches = train_data[(train_data['Correctness'] == 0) & (train_data['Question'] == question)]
+        for incorrect_answer in incorrect_matches['Answer']:
+            incorrect_chunks = split_text(incorrect_answer)
+            incorrect_embeddings = embedder.encode(incorrect_chunks)
+            for user_chunk, user_embedding in zip(user_chunks, user_embeddings):
+                for inc_chunk, inc_embedding in zip(incorrect_chunks, incorrect_embeddings):
+                    similarity = util.cos_sim(user_embedding, inc_embedding)[0][0]
+                    if similarity > 0.67:
+                        feedback = "Неверно, ответ похож на ранее помеченный как некорректный."
+                        return feedback  # Exit early if a match is found
+
+        feedback = "Не совсем точно"  # Default feedback if no match with incorrect answers
     return feedback
 
+# 6. Evaluation Loop
 
 for i, row in test_data.iterrows():
     question = row['Question']
@@ -67,4 +86,3 @@ for i, row in test_data.iterrows():
     print(feedback)
     if feedback == "Не совсем точно":
         print(comments)
-
