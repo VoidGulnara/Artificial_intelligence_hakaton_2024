@@ -33,6 +33,8 @@ def analyze_answer(user_answer, reference_answer, comments):
             if similarity > 0.67 and is_correct_reference:
                 similar_chunks.append(user_chunk)
                 break
+    if comments == "nan":
+        return ""
     covered_information = " ".join(similar_chunks)
     if len(similar_chunks) > 0.8 * len(reference_chunks):
         feedback = "Верно!"
@@ -118,4 +120,3 @@ while True:
     else:
         print("Неверный выбор. Попробуйте еще раз.")
         continue
-
