@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sentence_transformers import SentenceTransformer, util
 
-# 1. Data Loading and Preprocessing
+
 
 data = pd.read_csv("train_data.csv")
 
@@ -16,17 +16,17 @@ def clean_text(text):
 data['Question'] = data['Question'].apply(clean_text)
 data['Answer'] = data['Answer'].apply(clean_text)
 
-# 2. Train-Test Split with Correctness Filtering
+
 
 train_data = data[data['Correctness'] == 1]  # Keep only rows with Correctness = 1
 test_data = train_test_split(train_data, test_size=0.2, random_state=42)[1]
 
-# 3. Sentence Embeddings with Sentence Transformers
+
 
 model_name = 'all-MiniLM-L6-v2' 
 embedder = SentenceTransformer(model_name)
 
-# 4. Text Splitting
+
 
 def split_text(text, chunk_size=200, chunk_overlap=50):
     chunks = []
@@ -34,7 +34,7 @@ def split_text(text, chunk_size=200, chunk_overlap=50):
         chunks.append(text[i:i + chunk_size])
     return chunks
 
-# 5. Answer Analysis
+
 
 def analyze_answer(user_answer, reference_answer, comments):
     user_chunks = split_text(user_answer)
@@ -60,7 +60,7 @@ def analyze_answer(user_answer, reference_answer, comments):
     if len(similar_chunks) > 0.8 * len(reference_chunks):
         feedback = "Верно!"
     else:
-        # Check if the user answer is similar to any incorrect answer
+
         incorrect_matches = train_data[(train_data['Correctness'] == 0) & (train_data['Question'] == question)]
         for incorrect_answer in incorrect_matches['Answer']:
             incorrect_chunks = split_text(incorrect_answer)
@@ -75,7 +75,7 @@ def analyze_answer(user_answer, reference_answer, comments):
         feedback = "Не совсем точно"  # Default feedback if no match with incorrect answers
     return feedback
 
-# 6. Evaluation Loop
+
 
 for i, row in test_data.iterrows():
     question = row['Question']
