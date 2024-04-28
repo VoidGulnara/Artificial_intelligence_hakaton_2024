@@ -68,42 +68,19 @@ def get_user_choice(data):
         except ValueError:
             print("Неверный ввод. Пожалуйста, введите номер.")
 while True:
-    print("\nВыберите опцию:")
-    print("1. Проверить знания по конкретной теме")
-    print("2. Проверить знания по всем темам")
-    print("3. Выход")
-    choice = input("> ")
-    if choice == '1':
-        lesson_or_course = get_user_choice(test_data)
-        while True:
-            all_questions_choice = input("Проверить знания по всей теме? (введите 'да' или 'нет'): ")
-            if all_questions_choice.lower() in ['да', 'нет']:
-                break
-            else:
-                print("Неверный ввод. Пожалуйста, введите 'да' или 'нет'.")
-        if all_questions_choice.lower() == 'да':
-            questions = test_data[test_data['Lesson'] == lesson_or_course]
-        else:
-            questions = get_questions(test_data, lesson_or_course)
-            if questions is not None:
-                for i, row in test_data.iterrows():
-                    question = row['Question']
-                    reference_answer = row['Answer']
-                    comments = row['Comment']
-                    user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
-                    feedback = analyze_answer(user_answer, reference_answer, comments)
-                    print(feedback)
-                    if feedback == "Не совсем точно":
-                        print(comments)
+    lesson_or_course = get_user_choice(test_data)
+    questions = get_questions(test_data, lesson_or_course)
+    if questions is not None:
+        for i, row in test_data.iterrows():
+            question = row['Question']
+            reference_answer = row['Answer']
+            comments = row['Comment']
+            user_answer = input(f"Вопрос: {question}\nВаш ответ: ")
+            feedback = analyze_answer(user_answer, reference_answer, comments)
+            print(feedback)
+            if feedback == "Не совсем точно":
+                print(comments)
             else:
                 print("Нет вопросов")
-    elif choice == '2':
-        unique_names = get_unique_names(test_data)
-        questions = pd.concat([get_questions(test_data, name, num_questions=1) for name in unique_names])
-        questions = questions.sample(frac=1) 
-    elif choice == '3':
-        break
-    else:
-        print("Неверный выбор. Попробуйте еще раз.")
         continue
 
